@@ -3,7 +3,6 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 from pathlib import Path
-import openpyxl
 from openpyxl.styles import Font, Alignment
 
 # Helper function to get only files (exclude folders)
@@ -79,11 +78,24 @@ if directory_path and Path(directory_path).exists():
         st.write("### Assign Categories")
         for index, item in enumerate(items):
             name, modified_time = item
-            # Display file name clearly
-            st.markdown(f"<h5 style='font-weight: bold;'>{name}</h5>", unsafe_allow_html=True)
-            # Create a dropdown for each item with a unique key
-            category = st.selectbox(f"Select category for `{name}`", categories, key=f"selectbox_{index}")
-            category_selection[name] = (modified_time, category)
+
+            # Create a horizontal layout for file name and category selection
+            cols = st.columns([3, 1])  # Adjust the columns as needed
+            
+            # Display file name clearly with modified time
+            with cols[0]:
+                st.write(f"**{index + 1}. {name}**")
+
+            # Create a dropdown for each item with a unique key right next to the file name
+            # Dropdown for each file's category selection with a non-empty placeholder label
+            with cols[1]:
+                category = st.selectbox(
+                    label="Select category",  # Provide a placeholder label for accessibility
+                    options=categories,
+                    key=f"selectbox_{index}",
+                    label_visibility="collapsed"  # Hide the label in the UI
+                )
+                category_selection[name] = (modified_time, category)
 
         # Generate Excel button
         if st.button("Generate Excel"):
@@ -92,7 +104,7 @@ if directory_path and Path(directory_path).exists():
                 categorized_data[category].append((name, modified_time))
 
             # Generate and show Excel link
-            output_excel_path = "categorized_files.xlsx"
+            output_excel_path = "Categorized_files.xlsx"
             excel_path = generate_excel(categorized_data, output_excel_path)
             st.success("Excel file generated successfully!")
             st.download_button("Download Excel", data=open(excel_path, "rb"), file_name=output_excel_path)
