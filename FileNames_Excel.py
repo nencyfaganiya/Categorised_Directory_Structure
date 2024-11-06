@@ -78,10 +78,10 @@ if directory_path and Path(directory_path).exists():
 
         st.write("### Assign Categories")
         for index, item in enumerate(items):
-            name, modified_time = item
+            name, modified_time, full_path = item
 
             # Create a horizontal layout for file name and category selection
-            cols = st.columns([3, 1])  # Adjust the columns as needed
+            cols = st.columns([3, 1])  
             
             # Display file name clearly with modified time
             with cols[0]:
