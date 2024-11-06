@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from pathlib import Path
 from openpyxl.styles import Font, Alignment
+import pyperclip
 
 # Helper function to get only files (exclude folders)
 def get_files(path):
@@ -84,7 +85,10 @@ if directory_path and Path(directory_path).exists():
             
             # Display file name clearly with modified time
             with cols[0]:
-                st.write(f"**{index + 1}. {name}**")
+                # Button to copy path to clipboard
+                if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
+                    pyperclip.copy(full_path)
+                    st.success(f"Path copied to clipboard: {full_path}")
 
             # Create a dropdown for each item with a unique key right next to the file name
             # Dropdown for each file's category selection with a non-empty placeholder label
