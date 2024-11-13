@@ -4,3 +4,6 @@ streamlit
 pathlib
 openpyxl
 pyperclip
+docx
+reportlab
+BytesIO
