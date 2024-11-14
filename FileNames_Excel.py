@@ -14,13 +14,13 @@ from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
 
 
-# Helper function to get files (excluding folders)
+# Helper function to list files from a shared directory
 def get_files(path):
     items = []
     for root, dirs, files in os.walk(path):
-        for name in files:
+        for name in files:  # Only include files, exclude folders
             full_path = os.path.join(root, name)
-            modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+            modified_time = os.path.getmtime(full_path)
             items.append((name, modified_time, full_path))
     return items
 
@@ -122,7 +122,9 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-directory_path = st.text_input("Enter the directory path:", "")
+
+# Provide an input field for the user to enter the shared server path
+directory_path = st.text_input("Enter the directory path on the shared server:", "")
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
