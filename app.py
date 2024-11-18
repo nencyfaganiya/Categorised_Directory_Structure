@@ -39,6 +39,21 @@ def map_network_drive():
 # Uncomment and call this function before accessing files
 # map_network_drive()
 
+def resolve_path(path):
+    """
+    Resolve the path whether it is a mapped drive (e.g., Z:) or a UNC path (e.g., \\fileserver\shared\folder).
+    """
+    if path.startswith('Z:'):
+        # Convert mapped drive path to UNC path
+        # Assuming Z: is mapped to \\fileserver\shared (you can adapt this based on your network drive mappings)
+        return r"\\LON-FP1\Company" + path[2:]  # This converts Z:\folder to \\fileserver\shared\folder
+    elif path.startswith("\\\\"):
+        # It's already a UNC path
+        return path
+    else:
+        # Invalid path format, returning None or raising an error
+        return None
+
 # Word generation in memory
 def generate_word(categories):
     doc = Document()
@@ -140,10 +155,11 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-directory_path = st.text_input("Enter the network directory path:", r"\\LON-FP1\Company")
-st.info("Example: \\LON-FP1\Company\\folder")
 
+# User input: directory path
+directory_path = st.text_input("Enter the network directory path:", "")
 map_network_drive()
+
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
     st.session_state.generate_excel_option = False
@@ -168,7 +184,13 @@ with col3:
 
 # Get files in directory
 if directory_path and Path(directory_path).exists():
-    items = get_files(directory_path)
+    
+        # Resolve path if it's a mapped drive (e.g., Z:\folder)
+    resolved_path = resolve_path(directory_path)
+
+    if resolved_path:
+        if Path(resolved_path).exists():
+            items = get_files(resolved_path)  # Your original get_files function
     
     if items:
         categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY"]
