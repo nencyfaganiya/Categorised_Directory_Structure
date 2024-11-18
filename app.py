@@ -2,6 +2,7 @@ import os
 import socket
 from datetime import datetime
 import pandas as pd
+from rich import _console
 import streamlit as st
 from pathlib import Path
 from openpyxl.styles import Font, Alignment
@@ -51,9 +52,8 @@ def resolve_path(path):
     - If the app is running on the server, use the UNC path.
     """
     # Check the hostname to identify if the app is running on the server or client machine
-    # is_server = socket.gethostname().lower() == "lon-fp1"
     is_server = socket.gethostname().lower()
-    print(is_server)
+    st.write(f"Host name: {is_server}")
     # If the app is running on the client machine, the path might be Z: (mapped drive)
     if not is_server:
         # If it's a mapped drive (e.g., Z:), use it as is
@@ -202,7 +202,7 @@ with col3:
 
 # Get files in directory
 if directory_path and Path(directory_path).exists():
-    st.write(f"Directory path: {directory_path}")
+    #st.write(f"Directory path: {directory_path}")
     items = []  # Initialize as an empty list at the start
     
     # Resolve path if it's a mapped drive (e.g., Z:\folder)
@@ -210,7 +210,7 @@ if directory_path and Path(directory_path).exists():
     st.write(f"Resolved path: {resolved_path}")
     if resolved_path:
         if Path(resolved_path).exists():
-            st.write(f"Resolved path: {resolved_path}")
+           # st.write(f"Resolved path: {resolved_path}")
             items = get_files(resolved_path)
     else:
         st.error("Failed to resolve path.")
