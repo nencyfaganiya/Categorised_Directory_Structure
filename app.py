@@ -26,21 +26,29 @@ network_password = os.getenv('NETWORK_PASSWORD')
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# Helper function to get files (excluding folders)
+# Helper function to get files from a folder
 def get_files(path):
     items = []
     try:
-        if os.path.exists(path):
-            for root, dirs, files in os.walk(path):
-                for name in files:
-                    full_path = os.path.join(root, name)
-                    modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-                    items.append((name, modified_time, full_path))
-        else:
-            st.error(f"Path does not exist: {path}")
+        for root, dirs, files in os.walk(path):
+            for name in files:
+                full_path = os.path.join(root, name)
+                modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+                items.append((name, modified_time, full_path))
     except Exception as e:
+        # Handle error if path is inaccessible
         st.error(f"Failed to access the directory: {e}")
     return items
+
+# Function to open folder picker dialog
+def choose_directory():
+    # Open a Tkinter root window (it will be hidden)
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    # Open the folder picker dialog
+    folder_selected = filedialog.askdirectory()
+    return folder_selected
 
 
 def resolve_path(path):
@@ -154,9 +162,10 @@ def generate_excel(categories):
 # Streamlit UI
 st.title("File Categorization Tool")
 
-# User input: directory path
-# directory_path = st.text_input("Enter the network directory path:", "")
-directory_path = r'\\lon-fp1\users\nefaganiya\Imp Documents'
+# Button to open folder picker
+if st.button("Choose Folder"):
+    # This will trigger the folder picker dialog
+    directory_path = choose_directory()
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
