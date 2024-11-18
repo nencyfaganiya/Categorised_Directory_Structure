@@ -51,8 +51,9 @@ def resolve_path(path):
     - If the app is running on the server, use the UNC path.
     """
     # Check the hostname to identify if the app is running on the server or client machine
-    is_server = socket.gethostname().lower() == "lon-fp1"
-
+    # is_server = socket.gethostname().lower() == "lon-fp1"
+    is_server = socket.gethostname().lower()
+    print(is_server)
     # If the app is running on the client machine, the path might be Z: (mapped drive)
     if not is_server:
         # If it's a mapped drive (e.g., Z:), use it as is
