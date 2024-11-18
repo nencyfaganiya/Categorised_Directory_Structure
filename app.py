@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 from pathlib import Path
-from openpyxl.styles import Font, Alignment 
+from openpyxl.styles import Font, Alignment
 from io import BytesIO
 from docx import Document
 from docx.shared import Pt
@@ -12,8 +12,19 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
-import subprocess
+import logging
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Network path and credentials from environment
+network_path = r"\\LON-FP1\Company"
+network_username = os.getenv('NETWORK_USERNAME')
+network_password = os.getenv('NETWORK_PASSWORD')
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # Helper function to get files (excluding folders)
 def get_files(path):
@@ -25,34 +36,17 @@ def get_files(path):
                 modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
                 items.append((name, modified_time, full_path))
     except Exception as e:
-        # Handle error if path is inaccessible
+        logging.error(f"Failed to access the directory: {e}")
         st.error(f"Failed to access the directory: {e}")
     return items
 
-def map_network_drive():
-    network_path = r"\\LON-FP1\Company"
-    username = "nefaganiya"  # Replace with your network username
-    password = "Frencon137**"  # Replace with your network password
-    command = f'net use {network_path} /user:{username} {password}'
-    subprocess.run(command, shell=True)
-
-# Uncomment and call this function before accessing files
-# map_network_drive()
-
 def resolve_path(path):
-    """
-    Resolve the path whether it is a mapped drive (e.g., Z:) or a UNC path (e.g., \\fileserver\shared\folder).
-    """
+    """Resolve path for UNC or mapped drives"""
     if path.startswith('Z:'):
-        # Convert mapped drive path to UNC path
-        # Assuming Z: is mapped to \\fileserver\shared (you can adapt this based on your network drive mappings)
-        return r"\\LON-FP1\Company" + path[2:]  # This converts Z:\folder to \\fileserver\shared\folder
+        return r"\\LON-FP1\Company" + path[2:]  # For mapped drive conversion
     elif path.startswith("\\\\"):
-        # It's already a UNC path
-        return path
-    else:
-        # Invalid path format, returning None or raising an error
-        return None
+        return path  # Already UNC path
+    return None
 
 # Word generation in memory
 def generate_word(categories):
@@ -158,7 +152,7 @@ st.title("File Categorization Tool")
 
 # User input: directory path
 directory_path = st.text_input("Enter the network directory path:", "")
-map_network_drive()
+
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
@@ -185,12 +179,11 @@ with col3:
 # Get files in directory
 if directory_path and Path(directory_path).exists():
     
-        # Resolve path if it's a mapped drive (e.g., Z:\folder)
+    # Resolve path if it's a mapped drive (e.g., Z:\folder)
     resolved_path = resolve_path(directory_path)
 
-    if resolved_path:
-        if Path(resolved_path).exists():
-            items = get_files(resolved_path)  # Your original get_files function
+    if resolved_path and Path(resolved_path).exists():
+        items = get_files(resolved_path)
     
     if items:
         categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY"]
