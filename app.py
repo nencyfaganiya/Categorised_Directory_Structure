@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 from pathlib import Path
-from openpyxl.styles import Font, Alignment  # <-- Add Font and Alignment here
+from openpyxl.styles import Font, Alignment 
 from io import BytesIO
 from docx import Document
 from docx.shared import Pt
@@ -14,13 +14,13 @@ from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
 
 
-# Helper function to list files from a shared directory
+# Helper function to get files (excluding folders)
 def get_files(path):
     items = []
     for root, dirs, files in os.walk(path):
-        for name in files:  # Only include files, exclude folders
+        for name in files:
             full_path = os.path.join(root, name)
-            modified_time = os.path.getmtime(full_path)
+            modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
             items.append((name, modified_time, full_path))
     return items
 
@@ -122,9 +122,7 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-
-# Provide an input field for the user to enter the shared server path
-directory_path = st.text_input("Enter the directory path on the shared server:", "")
+directory_path = st.text_input("Enter the directory path:", "")
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
