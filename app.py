@@ -30,14 +30,18 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 def get_files(path):
     items = []
     try:
-        for root, dirs, files in os.walk(path):
-            for name in files:
-                full_path = os.path.join(root, name)
-                modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-                items.append((name, modified_time, full_path))
+        if os.path.exists(path):
+            for root, dirs, files in os.walk(path):
+                for name in files:
+                    full_path = os.path.join(root, name)
+                    modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+                    items.append((name, modified_time, full_path))
+        else:
+            st.error(f"Path does not exist: {path}")
     except Exception as e:
         st.error(f"Failed to access the directory: {e}")
-    return items  # Make sure this is returning the list
+    return items
+
 
 def resolve_path(path):
     """Resolve path for UNC or mapped drives"""
@@ -151,8 +155,8 @@ def generate_excel(categories):
 st.title("File Categorization Tool")
 
 # User input: directory path
-directory_path = st.text_input("Enter the network directory path:", "")
-
+# directory_path = st.text_input("Enter the network directory path:", "")
+directory_path = "E:\Data\Company\1. Projects\2898 - 217 Camden Road\2013"
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
