@@ -14,8 +14,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
 import logging
 from dotenv import load_dotenv
-import tkinter as tk
-from tkinter import filedialog
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,38 +26,32 @@ network_password = os.getenv('NETWORK_PASSWORD')
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# Helper function to get files from a folder
+# Helper function to get files (excluding folders)
 def get_files(path):
     items = []
     try:
-        for root, dirs, files in os.walk(path):
-            for name in files:
-                full_path = os.path.join(root, name)
-                modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-                items.append((name, modified_time, full_path))
+        if os.path.exists(path):
+            for root, dirs, files in os.walk(path):
+                for name in files:
+                    full_path = os.path.join(root, name)
+                    modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+                    items.append((name, modified_time, full_path))
+        else:
+            st.error(f"Path does not exist: {path}")
     except Exception as e:
-        # Handle error if path is inaccessible
         st.error(f"Failed to access the directory: {e}")
-    return items
-
-# Function to open folder picker dialog
-def choose_directory():
-    # Open a Tkinter root window (it will be hidden)
-    root = tk.Tk()
-    root.withdraw()  # Hide the main window
-
-    # Open the folder picker dialog
-    folder_selected = filedialog.askdirectory()
-    return folder_selected
+    if items:
+        return items
 
 def resolve_path(path):
     """Resolve path for UNC or mapped drives"""
     if path.startswith('Z:'):
-        return r"E:\Data\Company" + path[2:]  # For mapped drive conversion
+        return r"E:\Data\Company" + path[2:]  # For mapped drive conversion (adjust as needed)
     elif path.startswith("\\\\"):
         return path  # Already UNC path
     else:
-        return None
+        return path  # Assuming it's a valid local path or network share path
+
 
 # Word generation in memory
 def generate_word(categories):
@@ -163,14 +155,8 @@ def generate_excel(categories):
 # Streamlit UI
 st.title("File Categorization Tool")
 
-# Initialize session state if not already initialized
-if 'directory_path' not in st.session_state:
-    st.session_state.directory_path = ""
-
-# Button to open folder picker
-if st.button("Choose Folder"):
-    # This will trigger the folder picker dialog
-    directory_path = choose_directory()
+# User input: directory path
+directory_path = st.text_input("Enter the network directory path:", "")
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
@@ -201,8 +187,11 @@ if directory_path and Path(directory_path).exists():
     # Resolve path if it's a mapped drive (e.g., Z:\folder)
     resolved_path = resolve_path(directory_path)
 
-    if resolved_path and Path(resolved_path).exists():
-        items = get_files(resolved_path)
+    if resolved_path:
+        if Path(resolved_path).exists():
+            items = get_files(resolved_path)
+    else:
+        st.error("Failed to resolve path.")
     
     if items:
         categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY"]
