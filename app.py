@@ -182,8 +182,9 @@ with col3:
 
 # Get files in directory
 if directory_path and Path(directory_path).exists():
+    st.write(f"Directory path: {directory_path}")
     items = []  # Initialize as an empty list at the start
-    st.write(f"Resolved path: {directory_path}")
+    
     # Resolve path if it's a mapped drive (e.g., Z:\folder)
     resolved_path = resolve_path(directory_path)
     st.write(f"Resolved path: {resolved_path}")
