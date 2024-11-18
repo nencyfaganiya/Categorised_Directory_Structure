@@ -1,4 +1,5 @@
 import os
+import socket
 from datetime import datetime
 import pandas as pd
 import streamlit as st
@@ -44,13 +45,31 @@ def get_files(path):
         return items
 
 def resolve_path(path):
-    """Resolve path for UNC or mapped drives"""
-    if path.startswith('Z:'):
-        return r"E:\Data\Company" + path[2:]  # For mapped drive conversion (adjust as needed)
-    elif path.startswith("\\\\"):
-        return path  # Already UNC path
+    """
+    Resolves the path for both client and server environments.
+    - If the app is running on the client machine, use the mapped drive (e.g., Z:).
+    - If the app is running on the server, use the UNC path.
+    """
+    # Check the hostname to identify if the app is running on the server or client machine
+    is_server = socket.gethostname().lower() == "lon-fp1"
+
+    # If the app is running on the client machine, the path might be Z: (mapped drive)
+    if not is_server:
+        # If it's a mapped drive (e.g., Z:), use it as is
+        if path.startswith("Z:"):
+            return path  # Return the mapped drive path directly
     else:
-        return path  # Assuming it's a valid local path or network share path
+        # On the server, convert the mapped path to the UNC path (e.g., Z: -> \\server_name\shared_folder)
+        if path.startswith("Z:"):
+            return r"\\E:\Data\Company" + path[2:]  # Convert to UNC path for the server
+
+    # If it's already a UNC path, return it as is
+    if path.startswith("\\\\"):
+        return path
+    
+    # Return None or handle other cases
+    return None
+
 
 
 # Word generation in memory
