@@ -14,6 +14,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
 import logging
 from dotenv import load_dotenv
+import tkinter as tk
+from tkinter import filedialog
 
 # Load environment variables from .env file
 load_dotenv()
@@ -49,7 +51,6 @@ def choose_directory():
     # Open the folder picker dialog
     folder_selected = filedialog.askdirectory()
     return folder_selected
-
 
 def resolve_path(path):
     """Resolve path for UNC or mapped drives"""
@@ -161,6 +162,10 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
+
+# Initialize session state if not already initialized
+if 'directory_path' not in st.session_state:
+    st.session_state.directory_path = ""
 
 # Button to open folder picker
 if st.button("Choose Folder"):
