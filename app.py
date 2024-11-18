@@ -52,8 +52,8 @@ def resolve_path(path):
     - If the app is running on the server, use the UNC path.
     """
     # Check the hostname to identify if the app is running on the server or client machine
-    is_server = socket.gethostname().lower()
-    st.write(f"Host name: {is_server}")
+    is_server = socket.gethostname().lower() == 'lon-fp1'
+
     # If the app is running on the client machine, the path might be Z: (mapped drive)
     if not is_server:
         # If it's a mapped drive (e.g., Z:), use it as is
@@ -174,8 +174,10 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-is_server = socket.gethostname().lower()
-st.write(f"Host name: {is_server}")
+
+#is_server = socket.gethostname().lower()
+#st.write(f"Host name: {is_server}")
+
 # User input: directory path
 directory_path = st.text_input("Enter the network directory path:", "")
 
