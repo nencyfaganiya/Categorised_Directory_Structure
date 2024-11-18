@@ -156,7 +156,7 @@ st.title("File Categorization Tool")
 
 # User input: directory path
 # directory_path = st.text_input("Enter the network directory path:", "")
-directory_path = "E:\Data\Company\1. Projects\2898 - 217 Camden Road\2013"
+directory_path = r'\\lon-fp1\users\nefaganiya\Imp Documents'
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
