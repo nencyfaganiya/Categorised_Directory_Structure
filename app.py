@@ -12,6 +12,7 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
+import time
 
 
 # Helper function to get files (excluding folders)
@@ -23,6 +24,7 @@ def get_files(path):
             modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
             items.append((name, modified_time, full_path))
     return items
+
 
 # Word generation in memory
 def generate_word(categories):
@@ -55,6 +57,7 @@ def generate_word(categories):
     doc.save(buffer)
     buffer.seek(0)
     return buffer
+
 
 # PDF generation in memory
 def generate_pdf(categories):
@@ -91,6 +94,7 @@ def generate_pdf(categories):
     buffer.seek(0)
     return buffer
 
+
 # Excel generation in memory
 def generate_excel(categories):
     data = []
@@ -119,6 +123,7 @@ def generate_excel(categories):
 
     buffer.seek(0)
     return buffer
+
 
 # Streamlit UI
 st.title("File Categorization Tool")
@@ -155,18 +160,19 @@ if directory_path and Path(directory_path).exists():
         category_selection = {}
 
         st.write("### Assign Categories")
-        for index, item in enumerate(items):
-            name, modified_time, full_path = item
-            cols = st.columns([3, 1])
-            
-            with cols[0]:
-                if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
-                    pyperclip.copy(full_path)
-                    st.success(f"Path copied to clipboard: {full_path}")
-            with cols[1]:
-                # Track category selections to detect changes
-                category = st.selectbox("Select category", options=categories, key=f"selectbox_{index}", label_visibility="collapsed")
-                category_selection[name] = (modified_time, category)
+        with st.spinner("Categorizing files..."):
+            for index, item in enumerate(items):
+                name, modified_time, full_path = item
+                cols = st.columns([3, 1])
+
+                with cols[0]:
+                    if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
+                        pyperclip.copy(full_path)
+                        st.success(f"Path copied to clipboard: {full_path}")
+                with cols[1]:
+                    # Track category selections to detect changes
+                    category = st.selectbox("Select category", options=categories, key=f"selectbox_{index}", label_visibility="collapsed")
+                    category_selection[name] = (modified_time, category)
 
         # Detect if category selection has changed by comparing with session state
         if category_selection != st.session_state.category_selection:
@@ -180,18 +186,24 @@ if directory_path and Path(directory_path).exists():
             for name, (modified_time, category) in st.session_state.category_selection.items():
                 categorized_data[category].append((name, modified_time))
 
-            # Generate files only if the file type is selected
-            if st.session_state.generate_excel_option:
-                output_excel_buffer = generate_excel(categorized_data)
-                st.session_state.generated_files['excel'] = output_excel_buffer
+            # Check if there are files to generate
+            if any(len(items) > 0 for items in categorized_data.values()):
+                # Generate files
+                if st.session_state.generate_excel_option:
+                    output_excel_buffer = generate_excel(categorized_data)
+                    st.session_state.generated_files['excel'] = output_excel_buffer
 
-            if st.session_state.generate_word_option:
-                output_word_buffer = generate_word(categorized_data)
-                st.session_state.generated_files['word'] = output_word_buffer
+                if st.session_state.generate_word_option:
+                    output_word_buffer = generate_word(categorized_data)
+                    st.session_state.generated_files['word'] = output_word_buffer
 
-            if st.session_state.generate_pdf_option:
-                output_pdf_buffer = generate_pdf(categorized_data)
-                st.session_state.generated_files['pdf'] = output_pdf_buffer
+                if st.session_state.generate_pdf_option:
+                    output_pdf_buffer = generate_pdf(categorized_data)
+                    st.session_state.generated_files['pdf'] = output_pdf_buffer
+
+                st.success("Files generated successfully!")
+            else:
+                st.warning("No files selected for generation. Please ensure categories are assigned to files.")
 
         # Display download buttons for each generated file
         if st.session_state.generate_excel_option and 'excel' in st.session_state.generated_files:
