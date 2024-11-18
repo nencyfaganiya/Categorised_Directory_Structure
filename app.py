@@ -174,7 +174,8 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-
+is_server = socket.gethostname().lower()
+st.write(f"Host name: {is_server}")
 # User input: directory path
 directory_path = st.text_input("Enter the network directory path:", "")
 
