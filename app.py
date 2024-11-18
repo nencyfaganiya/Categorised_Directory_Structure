@@ -12,19 +12,32 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
-import time
+import subprocess
 
 
 # Helper function to get files (excluding folders)
 def get_files(path):
     items = []
-    for root, dirs, files in os.walk(path):
-        for name in files:
-            full_path = os.path.join(root, name)
-            modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-            items.append((name, modified_time, full_path))
+    try:
+        for root, dirs, files in os.walk(path):
+            for name in files:
+                full_path = os.path.join(root, name)
+                modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+                items.append((name, modified_time, full_path))
+    except Exception as e:
+        # Handle error if path is inaccessible
+        st.error(f"Failed to access the directory: {e}")
     return items
 
+def map_network_drive():
+    network_path = r"\\LON-FP1\Company"
+    username = "nefaganiya"  # Replace with your network username
+    password = "Frencon137**"  # Replace with your network password
+    command = f'net use {network_path} /user:{username} {password}'
+    subprocess.run(command, shell=True)
+
+# Uncomment and call this function before accessing files
+# map_network_drive()
 
 # Word generation in memory
 def generate_word(categories):
@@ -127,8 +140,10 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-directory_path = st.text_input("Enter the directory path:", "")
+directory_path = st.text_input("Enter the network directory path:", r"\\LON-FP1\Company")
+st.info("Example: \\LON-FP1\Company\\folder")
 
+map_network_drive()
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
     st.session_state.generate_excel_option = False
