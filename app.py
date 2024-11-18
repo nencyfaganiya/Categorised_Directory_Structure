@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Network path and credentials from environment
-network_path = r"\\LON-FP1\Company"
+network_path = r"E:\Data\Company"
 network_username = os.getenv('NETWORK_USERNAME')
 network_password = os.getenv('NETWORK_PASSWORD')
 
@@ -36,17 +36,17 @@ def get_files(path):
                 modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
                 items.append((name, modified_time, full_path))
     except Exception as e:
-        logging.error(f"Failed to access the directory: {e}")
         st.error(f"Failed to access the directory: {e}")
-    return items
+    return items  # Make sure this is returning the list
 
 def resolve_path(path):
     """Resolve path for UNC or mapped drives"""
     if path.startswith('Z:'):
-        return r"\\LON-FP1\Company" + path[2:]  # For mapped drive conversion
+        return r"E:\Data\Company" + path[2:]  # For mapped drive conversion
     elif path.startswith("\\\\"):
         return path  # Already UNC path
-    return None
+    else:
+        return None
 
 # Word generation in memory
 def generate_word(categories):
@@ -178,6 +178,7 @@ with col3:
 
 # Get files in directory
 if directory_path and Path(directory_path).exists():
+    items = []  # Initialize as an empty list at the start
     
     # Resolve path if it's a mapped drive (e.g., Z:\folder)
     resolved_path = resolve_path(directory_path)
