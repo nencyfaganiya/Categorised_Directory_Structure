@@ -189,6 +189,7 @@ if directory_path and Path(directory_path).exists():
 
     if resolved_path:
         if Path(resolved_path).exists():
+            st.write(f"Resolved path: {resolved_path}")
             items = get_files(resolved_path)
     else:
         st.error("Failed to resolve path.")
