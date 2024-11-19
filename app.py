@@ -37,8 +37,8 @@ def resolve_path(path):
     # Handle mapped drives
     if path.startswith("Z:") or path.startswith("Y:"):  # Replace with your mapped drive letters
         drive_mappings = {
-            "Z:": r"\E:\Data\Company",  # Replace with actual UNC paths
-            "Y:": r"\another-share\folder"
+            "Z:": r"E:\Data\Company",  # Replace with actual UNC paths
+            "Y:": r"another-share\folder"
         }
         unc_path = os.path.normpath(drive_mappings.get(path[:2], "") + path[2:])
         if not os.path.exists(unc_path):
