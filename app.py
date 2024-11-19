@@ -45,33 +45,48 @@ def get_files(path):
     if items:
         return items
 
+import socket
+import os
+
 def resolve_path(path):
     """
     Resolves the path for both client and server environments.
     - If the app is running on the client machine, use the mapped drive (e.g., Z:).
-    - If the app is running on the server, use the UNC path.
+    - If the app is running on the server, convert the mapped path to the UNC path.
     """
-    # Check the hostname to identify if the app is running on the server or client machine
-    is_server = socket.gethostname().lower() == 'lon-fp1'
+    # Define the server hostname and UNC base path
+    SERVER_HOSTNAME = 'lon-fp1'  # Replace with your server's actual hostname
+    UNC_BASE_PATH = r"\\lon-fp1\E:\Data\Company"  # Replace with your UNC path base
 
-    # If the app is running on the client machine, the path might be Z: (mapped drive)
+    # Check if the current machine is the server
+    is_server = socket.gethostname().lower() == SERVER_HOSTNAME.lower()
+
+    # If the app is running on the client machine
     if not is_server:
-        # If it's a mapped drive (e.g., Z:), use it as is
-        if path.startswith("Z:"):
-            return path  # Return the mapped drive path directly
+        # Return mapped drive path as is (e.g., Z:)
+        if os.path.exists(path):
+            return path
+        else:
+            raise ValueError(f"Invalid path on client machine: {path}")
     else:
-        # On the server, convert the mapped path to the UNC path (e.g., Z: -> \\server_name\shared_folder)
+        # If running on the server, convert Z: to UNC path
         if path.startswith("Z:"):
-            return r"\\E:\Data\Company" + path[2:]  # Convert to UNC path for the server
+            # Replace the drive letter with the UNC path
+            unc_path = os.path.join(UNC_BASE_PATH, path[2:].replace("\\", "/"))
+            if os.path.exists(unc_path):
+                return unc_path
+            else:
+                raise ValueError(f"Invalid UNC path on server: {unc_path}")
+        
+        # If the input is already a UNC path, validate and return it
+        if path.startswith("\\\\"):
+            if os.path.exists(path):
+                return path
+            else:
+                raise ValueError(f"Invalid UNC path: {path}")
 
-    # If it's already a UNC path, return it as is
-    if path.startswith("\\\\"):
-        return path
-    
-    # Return None or handle other cases
-    return None
-
-
+    # If the path doesn't match expected formats
+    raise ValueError(f"Unrecognized or unsupported path format: {path}")
 
 # Word generation in memory
 def generate_word(categories):
