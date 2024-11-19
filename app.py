@@ -1,11 +1,12 @@
 import os
 import sys
+from io import BytesIO
 from datetime import datetime
 import pandas as pd
 import streamlit as st
 from pathlib import Path
 from openpyxl.styles import Font, Alignment  # <-- Add Font and Alignment here
-from io import BytesIO
+from dotenv import load_dotenv
 from docx import Document
 from docx.shared import Pt
 from reportlab.lib.pagesizes import A4
@@ -14,10 +15,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
 
+# Load the .env file
+load_dotenv()
+
 # Set the page config (this will update the browser tab title)
 st.set_page_config(
     page_title="File Categorization",  # Title displayed in the browser tab
-    page_icon="logo.png",  # You can also set a custom icon (can be an emoji or a path to an image)
+    page_icon="logo.png", 
 )
 
 # Helper function to get files (excluding folders)
@@ -26,9 +30,6 @@ def get_files(path, original_path):
     Retrieves all files in a given path along with their modification time.
     If the modification date is inaccessible due to long path or other issues,
     it still collects the file name and full path.
-
-    Args:
-        path (str): The base directory to scan for files.
 
     Returns:
         list: A list of tuples containing file name, modification time (if available), and full path.
@@ -59,9 +60,6 @@ def resolve_path(path):
     Resolves the path for both client and server environments.
     Handles UNC paths, normalizes separators, and validates accessibility.
 
-    Args:
-        path (str): Input path to resolve.
-
     Returns:
         str: Resolved and validated path.
 
@@ -73,7 +71,7 @@ def resolve_path(path):
 
     # Example of handling mapped drives
     drive_mappings = {
-        "Z:": r"E:\Data\Company",  # Replace with the actual UNC path
+        "Z:": os.getenv('UNC_PATH'),  # Replace with the actual UNC path
         "Y:": r"\\Server\SharedDrive"  # Replace with the actual UNC path for Y:
     }
 
