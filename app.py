@@ -24,7 +24,7 @@ st.set_page_config(
 def get_files(path):
     """
     Retrieves all files in a given path along with their modification time.
-    Excludes directories.
+    Excludes directories and handles missing files gracefully.
 
     Args:
         path (str): The base directory to scan for files.
@@ -33,12 +33,21 @@ def get_files(path):
         list: A list of tuples containing file name, modification time, and full path.
     """
     items = []
+    if not os.path.exists(path):
+        raise ValueError(f"Base path does not exist: {path}")
+
     for root, dirs, files in os.walk(path):
         for name in files:
-            full_path = os.path.join(root, name)
-            modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-            items.append((name, modified_time, full_path))
+            full_path = os.path.normpath(os.path.join(root, name))
+            
+            # Check if the file exists before getting metadata
+            if os.path.exists(full_path):
+                modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+                items.append((name, modified_time, full_path))
+            else:
+                st.warning(f"File not found or inaccessible: {full_path}")
     return items
+
 
 # Helper function to resolve paths
 def resolve_path(path):
