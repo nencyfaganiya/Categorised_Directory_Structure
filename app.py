@@ -238,11 +238,14 @@ if directory_path:
                 for index, item in enumerate(items):
                     name, modified_time, full_path, relative_full_path = item
                     cols = st.columns([3, 1])
-                    st.write(f"Relative full path: {relative_full_path}")
+                    # st.write(f"Relative full path: {relative_full_path}")
                     with cols[0]:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
-                            pyperclip.copy(relative_full_path)
-                            st.success(f"Path copied to clipboard: {full_path}")
+                            try:
+                                pyperclip.copy(relative_full_path)
+                                st.success(f"Path copied to clipboard: {relative_full_path}")
+                            except Exception:
+                                st.warning(f"Could not copy to clipboard. Please copy manually: {relative_full_path}")
                     with cols[1]:
                         # Track category selections to detect changes
                         category = st.selectbox("Select category", options=categories, key=f"selectbox_{index}", label_visibility="collapsed")
