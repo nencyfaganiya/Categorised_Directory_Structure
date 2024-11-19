@@ -95,29 +95,6 @@ def resolve_path(path):
 
     return path
 
-# Function to copy the directory path to clipboard using JavaScript
-def copy_directory_path_js(file_path):
-    # Create a unique HTML component with the JavaScript to copy the path
-    directory_path = Path(file_path).parent  # Get the directory part of the path
-    # JavaScript to copy text to the clipboard
-    copy_script = f"""
-    <script>
-        function copyToClipboard() {{
-            const textToCopy = "{directory_path}";
-            const textArea = document.createElement("textarea");
-            textArea.value = textToCopy;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-            alert("Directory path copied to clipboard: " + textToCopy);
-        }}
-        copyToClipboard();
-    </script>
-    """
-    # Use Streamlit to render the JavaScript
-    st.components.v1.html(copy_script)
-
 # Word generation in memory
 def generate_word(categories):
     doc = Document()
@@ -259,12 +236,11 @@ if directory_path:
                 for index, item in enumerate(items):
                     name, modified_time, full_path, relative_full_path = item
                     cols = st.columns([3, 1])
-                    
                     with cols[0]:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
                                 # pyperclip.copy(full_path)
-                                copy_directory_path_js(relative_full_path)
+                                pyperclip.copy(relative_full_path)
                                 st.success(f"Path copied to clipboard: {relative_full_path}")
                             except Exception:
                                 st.warning(f"Could not copy to clipboard. Please copy manually: {relative_full_path}")
