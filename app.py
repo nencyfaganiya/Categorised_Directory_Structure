@@ -29,18 +29,28 @@ def get_files(path):
 def resolve_path(path):
     """
     Resolves the path for both client and server environments.
-    - If the app is running on the server, it expects UNC paths.
+    - Handles UNC paths and normalizes separators.
     """
+    # Normalize separators
+    path = os.path.normpath(path)
+
+    # Handle mapped drives
     if path.startswith("Z:") or path.startswith("Y:"):  # Replace with your mapped drive letters
-        # Map drive letter to its UNC equivalent
         drive_mappings = {
-            "Z:": r"\\network-share\folder",  # Replace with actual UNC paths
+            "Z:": r"\\E:\Data\Company",  # Replace with actual UNC paths
             "Y:": r"\\another-share\folder"
         }
-        unc_path = drive_mappings.get(path[:2], None) + path[2:].replace("\\", "/")
-        if not unc_path or not os.path.exists(unc_path):
+        unc_path = os.path.normpath(drive_mappings.get(path[:2], "") + path[2:])
+        if not os.path.exists(unc_path):
             raise ValueError(f"Invalid path or UNC path not accessible: {unc_path}")
         return unc_path
+
+    # Check if the path is valid
+    if not os.path.exists(path):
+        raise ValueError(f"Invalid path: {path}")
+    
+    return path
+
 
     # If already a UNC path
     if path.startswith("\\\\"):
