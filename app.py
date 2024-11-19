@@ -24,13 +24,14 @@ st.set_page_config(
 def get_files(path):
     """
     Retrieves all files in a given path along with their modification time.
-    Excludes directories and handles missing files gracefully.
+    If the modification date is inaccessible due to long path or other issues,
+    it still collects the file name and full path.
 
     Args:
         path (str): The base directory to scan for files.
 
     Returns:
-        list: A list of tuples containing file name, modification time, and full path.
+        list: A list of tuples containing file name, modification time (if available), and full path.
     """
     items = []
     if not os.path.exists(path):
@@ -39,15 +40,17 @@ def get_files(path):
     for root, dirs, files in os.walk(path):
         for name in files:
             full_path = os.path.normpath(os.path.join(root, name))
-            
-            # Check if the file exists before getting metadata
-            if os.path.exists(full_path):
+            try:
+                # Try to get the modification time
                 modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-                items.append((name, modified_time, full_path))
-            else:
-                st.warning(f"File not found or inaccessible: {full_path}")
-    return items
+            except (OSError, FileNotFoundError):
+                # Handle cases where the file is inaccessible or too long
+                modified_time = "Unavailable"
 
+            # Append the file name, modification time (or "Unavailable"), and full path
+            items.append((name, modified_time, full_path))
+
+    return items
 
 # Helper function to resolve paths
 def resolve_path(path):
