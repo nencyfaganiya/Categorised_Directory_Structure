@@ -236,10 +236,12 @@ if directory_path:
                 for index, item in enumerate(items):
                     name, modified_time, full_path, relative_full_path = item
                     cols = st.columns([3, 1])
-                    # st.write(f"Relative full path: {relative_full_path}")
+                    
                     with cols[0]:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
+                                st.write(f"Relative full path: {relative_full_path}")
+                                # pyperclip.copy(full_path)
                                 pyperclip.copy(relative_full_path)
                                 st.success(f"Path copied to clipboard: {relative_full_path}")
                             except Exception:
