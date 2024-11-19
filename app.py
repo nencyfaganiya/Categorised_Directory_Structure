@@ -1,11 +1,9 @@
 import os
-import socket
 from datetime import datetime
 import pandas as pd
-from rich import _console
 import streamlit as st
 from pathlib import Path
-from openpyxl.styles import Font, Alignment
+from openpyxl.styles import Font, Alignment  # <-- Add Font and Alignment here
 from io import BytesIO
 from docx import Document
 from docx.shared import Pt
@@ -14,79 +12,48 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
-import logging
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Network path and credentials from environment
-network_path = r"E:\Data\Company"
-network_username = os.getenv('NETWORK_USERNAME')
-network_password = os.getenv('NETWORK_PASSWORD')
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # Helper function to get files (excluding folders)
 def get_files(path):
     items = []
-    try:
-        if os.path.exists(path):
-            for root, dirs, files in os.walk(path):
-                for name in files:
-                    full_path = os.path.join(root, name)
-                    modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
-                    items.append((name, modified_time, full_path))
-        else:
-            st.error(f"Path does not exist: {path}")
-    except Exception as e:
-        st.error(f"Failed to access the directory: {e}")
-    if items:
-        return items
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            full_path = os.path.join(root, name)
+            modified_time = datetime.fromtimestamp(os.path.getmtime(full_path)).strftime('%Y-%m-%d')
+            items.append((name, modified_time, full_path))
+    return items
 
-import socket
-import os
 
+# Helper function to resolve paths
 def resolve_path(path):
     """
     Resolves the path for both client and server environments.
-    - If the app is running on the client machine, use the mapped drive (e.g., Z:).
-    - If the app is running on the server, convert the mapped path to the UNC path.
+    - If the app is running on the server, it expects UNC paths.
     """
-    # Define the server hostname and UNC base path
-    SERVER_HOSTNAME = 'lon-fp1'  # Replace with your server's actual hostname
-    UNC_BASE_PATH = r"\\lon-fp1\E:\Data\Company"  # Replace with your UNC path base
+    if path.startswith("Z:") or path.startswith("Y:"):  # Replace with your mapped drive letters
+        # Map drive letter to its UNC equivalent
+        drive_mappings = {
+            "Z:": r"\\network-share\folder",  # Replace with actual UNC paths
+            "Y:": r"\\another-share\folder"
+        }
+        unc_path = drive_mappings.get(path[:2], None) + path[2:].replace("\\", "/")
+        if not unc_path or not os.path.exists(unc_path):
+            raise ValueError(f"Invalid path or UNC path not accessible: {unc_path}")
+        return unc_path
 
-    # Check if the current machine is the server
-    is_server = socket.gethostname().lower() == SERVER_HOSTNAME.lower()
+    # If already a UNC path
+    if path.startswith("\\\\"):
+        if not os.path.exists(path):
+            raise ValueError(f"Invalid UNC path: {path}")
+        return path
 
-    # If the app is running on the client machine
-    if not is_server:
-        # Return mapped drive path as is (e.g., Z:)
-        if os.path.exists(path):
-            return path
-        else:
-            raise ValueError(f"Invalid path on client machine: {path}")
-    else:
-        # If running on the server, convert Z: to UNC path
-        if path.startswith("Z:"):
-            # Replace the drive letter with the UNC path
-            unc_path = os.path.join(UNC_BASE_PATH, path[2:].replace("\\", "/"))
-            if os.path.exists(unc_path):
-                return unc_path
-            else:
-                raise ValueError(f"Invalid UNC path on server: {unc_path}")
-        
-        # If the input is already a UNC path, validate and return it
-        if path.startswith("\\\\"):
-            if os.path.exists(path):
-                return path
-            else:
-                raise ValueError(f"Invalid UNC path: {path}")
+    # Local paths can be used as-is
+    if os.path.exists(path):
+        return path
 
-    # If the path doesn't match expected formats
     raise ValueError(f"Unrecognized or unsupported path format: {path}")
+
 
 # Word generation in memory
 def generate_word(categories):
@@ -189,12 +156,7 @@ def generate_excel(categories):
 
 # Streamlit UI
 st.title("File Categorization Tool")
-
-#is_server = socket.gethostname().lower()
-#st.write(f"Host name: {is_server}")
-
-# User input: directory path
-directory_path = st.text_input("Enter the network directory path:", "")
+directory_path = st.text_input("Enter the directory path:", "")
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
@@ -219,30 +181,20 @@ with col3:
     st.session_state.generate_pdf_option = st.checkbox("Generate PDF", value=st.session_state.generate_pdf_option)
 
 # Get files in directory
-if directory_path and Path(directory_path).exists():
-    #st.write(f"Directory path: {directory_path}")
-    items = []  # Initialize as an empty list at the start
-    
-    # Resolve path if it's a mapped drive (e.g., Z:\folder)
-    resolved_path = resolve_path(directory_path)
-    st.write(f"Resolved path: {resolved_path}")
-    if resolved_path:
-        if Path(resolved_path).exists():
-           # st.write(f"Resolved path: {resolved_path}")
-            items = get_files(resolved_path)
-    else:
-        st.error("Failed to resolve path.")
-    
-    if items:
-        categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY"]
-        category_selection = {}
+if directory_path:
+    try:
+        resolved_path = resolve_path(directory_path)
+        items = get_files(resolved_path)
+        
+        if items:
+            categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY"]
+            category_selection = {}
 
-        st.write("### Assign Categories")
-        with st.spinner("Categorizing files..."):
+            st.write("### Assign Categories")
             for index, item in enumerate(items):
                 name, modified_time, full_path = item
                 cols = st.columns([3, 1])
-
+                
                 with cols[0]:
                     if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                         pyperclip.copy(full_path)
@@ -252,21 +204,19 @@ if directory_path and Path(directory_path).exists():
                     category = st.selectbox("Select category", options=categories, key=f"selectbox_{index}", label_visibility="collapsed")
                     category_selection[name] = (modified_time, category)
 
-        # Detect if category selection has changed by comparing with session state
-        if category_selection != st.session_state.category_selection:
-            # Update session state with new selection and clear generated files to force regeneration
-            st.session_state.category_selection = category_selection
-            st.session_state.generated_files.clear()
+            # Detect if category selection has changed by comparing with session state
+            if category_selection != st.session_state.category_selection:
+                # Update session state with new selection and clear generated files to force regeneration
+                st.session_state.category_selection = category_selection
+                st.session_state.generated_files.clear()
 
-        # Generate files if selected
-        if st.button("Generate Selected Files"):
-            categorized_data = {cat: [] for cat in categories}
-            for name, (modified_time, category) in st.session_state.category_selection.items():
-                categorized_data[category].append((name, modified_time))
+            # Generate files if selected
+            if st.button("Generate Selected Files"):
+                categorized_data = {cat: [] for cat in categories}
+                for name, (modified_time, category) in st.session_state.category_selection.items():
+                    categorized_data[category].append((name, modified_time))
 
-            # Check if there are files to generate
-            if any(len(items) > 0 for items in categorized_data.values()):
-                # Generate files
+                # Generate files only if the file type is selected
                 if st.session_state.generate_excel_option:
                     output_excel_buffer = generate_excel(categorized_data)
                     st.session_state.generated_files['excel'] = output_excel_buffer
@@ -279,21 +229,14 @@ if directory_path and Path(directory_path).exists():
                     output_pdf_buffer = generate_pdf(categorized_data)
                     st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                st.success("Files generated successfully!")
-            else:
-                st.warning("No files selected for generation. Please ensure categories are assigned to files.")
+            # Download generated files
+            for file_type, file_buffer in st.session_state.generated_files.items():
+                if file_type == 'excel':
+                    st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel')
+                elif file_type == 'word':
+                    st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                elif file_type == 'pdf':
+                    st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf')
 
-        # Display download buttons for each generated file
-        if st.session_state.generate_excel_option and 'excel' in st.session_state.generated_files:
-            st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name="categorized_files.xlsx")
-
-        if st.session_state.generate_word_option and 'word' in st.session_state.generated_files:
-            st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name="categorized_files.docx")
-
-        if st.session_state.generate_pdf_option and 'pdf' in st.session_state.generated_files:
-            st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name="categorized_files.pdf")
-
-    else:
-        st.warning("No files found in the selected directory.")
-else:
-    st.info("Please enter a valid directory path to start categorizing files.")
+    except ValueError as e:
+        st.error(str(e))
