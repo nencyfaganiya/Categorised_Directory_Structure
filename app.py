@@ -95,6 +95,12 @@ def resolve_path(path):
 
     return path
 
+# Function to copy directory path to clipboard
+def copy_directory_path(file_path):
+    directory_path = Path(file_path).parent  # Get the directory part of the path
+    pyperclip.copy(str(directory_path))  # Copy the directory path to clipboard
+    st.success(f"Directory path copied to clipboard: {directory_path}")
+
 # Word generation in memory
 def generate_word(categories):
     doc = Document()
@@ -240,9 +246,8 @@ if directory_path:
                     with cols[0]:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
-                                st.write(f"Relative full path: {relative_full_path}")
                                 # pyperclip.copy(full_path)
-                                pyperclip.copy(relative_full_path)
+                                copy_directory_path(relative_full_path)
                                 st.success(f"Path copied to clipboard: {relative_full_path}")
                             except Exception:
                                 st.warning(f"Could not copy to clipboard. Please copy manually: {relative_full_path}")
