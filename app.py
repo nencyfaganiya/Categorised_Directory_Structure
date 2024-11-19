@@ -35,35 +35,32 @@ def resolve_path(path):
     path = os.path.normpath(path)
 
     # Handle mapped drives
-    if path.startswith("Z:") or path.startswith("Y:"):  # Replace with your mapped drive letters
+    if path.startswith("Z:"):  # Replace with your mapped drive letters
         drive_mappings = {
             "Z:": r"E:\Data\Company",  # Replace with actual UNC paths
-            "Y:": r"Y:"
         }
         unc_path = os.path.normpath(drive_mappings.get(path[:2], "") + path[2:])
         if not os.path.exists(unc_path):
             raise ValueError(f"Invalid path or UNC path not accessible: {unc_path}")
         return unc_path
 
-    # Check if the path is valid
-    if not os.path.exists(path):
-        raise ValueError(f"Invalid path: {path}")
-    
-    return path
-
-
-    # If already a UNC path
-    if path.startswith("\\\\"):
+    # Check if the path starts with Y: drive (mapped network drive)
+    if path.startswith("Y:"):
         if not os.path.exists(path):
-            raise ValueError(f"Invalid UNC path: {path}")
+            raise ValueError(f"Invalid Y: drive path or not accessible: {path}")
         return path
 
-    # Local paths can be used as-is
-    if os.path.exists(path):
+    # Handle UNC paths if necessary (i.e., server accessible)
+    if path.startswith("\\\\"):  # UNC path starts with double backslashes
+        if not os.path.exists(path):
+            raise ValueError(f"Invalid UNC path or not accessible: {path}")
         return path
 
-    raise ValueError(f"Unrecognized or unsupported path format: {path}")
+    # Check if it's a normal path on the local system
+    if not os.path.exists(path):
+        raise ValueError(f"Invalid path or not accessible: {path}")
 
+    return path
 
 # Word generation in memory
 def generate_word(categories):
