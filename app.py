@@ -22,6 +22,16 @@ st.set_page_config(
 
 # Helper function to get files (excluding folders)
 def get_files(path):
+    """
+    Retrieves all files in a given path along with their modification time.
+    Excludes directories.
+
+    Args:
+        path (str): The base directory to scan for files.
+
+    Returns:
+        list: A list of tuples containing file name, modification time, and full path.
+    """
     items = []
     for root, dirs, files in os.walk(path):
         for name in files:
@@ -30,46 +40,47 @@ def get_files(path):
             items.append((name, modified_time, full_path))
     return items
 
-
 # Helper function to resolve paths
 def resolve_path(path):
     """
     Resolves the path for both client and server environments.
-    - Handles UNC paths and normalizes separators.
+    Handles UNC paths, normalizes separators, and validates accessibility.
+
+    Args:
+        path (str): Input path to resolve.
+
+    Returns:
+        str: Resolved and validated path.
+
+    Raises:
+        ValueError: If the path is invalid or inaccessible.
     """
-    # Normalize separators
+    # Normalize separators to use the correct format for the operating system
     path = os.path.normpath(path)
 
-    # Handle mapped drives
-    if path.startswith("Z:"):  # Replace with your mapped drive letters
-        drive_mappings = {
-            "Z:": r"E:\Data\Company",  # Replace with actual UNC paths
-        }
-        unc_path = os.path.normpath(drive_mappings.get(path[:2], "") + path[2:])
+    # Example of handling mapped drives
+    drive_mappings = {
+        "Z:": r"E:\Data\Company",  # Replace with the actual UNC path
+        "Y:": r"\\Server\SharedDrive"  # Replace with the actual UNC path for Y:
+    }
+
+    # Check if the path starts with a mapped drive and convert to UNC
+    drive_letter = path[:2]  # Extract the drive letter, e.g., "Z:"
+    if drive_letter in drive_mappings:
+        unc_path = os.path.normpath(drive_mappings[drive_letter] + path[2:])
         if not os.path.exists(unc_path):
-            raise ValueError(f"Invalid path or UNC path not accessible: {unc_path}")
+            raise ValueError(f"Invalid or inaccessible mapped drive path: {unc_path}")
         return unc_path
 
-    # Check if the path starts with Y: drive (mapped network drive)
-    if path.startswith("Y:"):
-        # Check if running on the server or locally and handle accordingly
-        if sys.platform.startswith('win'):  # Check if it's a Windows system
-            if not os.path.exists(path):
-                raise ValueError(f"Invalid Y: drive path or not accessible: {path}")
-            return path
-        else:
-            # If not on a Windows system or drive is not mapped for server service
-            raise ValueError(f"Y: drive is not accessible on this server or environment: {path}")
-
-    # Handle UNC paths if necessary (i.e., server accessible)
-    if path.startswith("\\\\"):  # UNC path starts with double backslashes
+    # Check for UNC paths (e.g., "\\Server\Share")
+    if path.startswith("\\\\"):
         if not os.path.exists(path):
-            raise ValueError(f"Invalid UNC path or not accessible: {path}")
+            raise ValueError(f"Invalid or inaccessible UNC path: {path}")
         return path
 
-    # Check if it's a normal path on the local system
+    # Check for normal local paths
     if not os.path.exists(path):
-        raise ValueError(f"Invalid path or not accessible: {path}")
+        raise ValueError(f"Invalid or inaccessible local path: {path}")
 
     return path
 
