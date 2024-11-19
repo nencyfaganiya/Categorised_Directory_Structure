@@ -229,16 +229,16 @@ if directory_path:
         if resolved_path and Path(resolved_path).exists():
         # Use both the resolved and client-relative paths
             items = get_files(resolved_path, directory_path)
-        
+            
             if items:
-                categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY"]
+                categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY", "OTHER"]
                 category_selection = {}
 
                 st.write("### Assign Categories")
                 for index, item in enumerate(items):
                     name, modified_time, full_path, relative_full_path = item
                     cols = st.columns([3, 1])
-                    
+                    st.write(f"Relative full path: {relative_full_path}")
                     with cols[0]:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             pyperclip.copy(relative_full_path)
