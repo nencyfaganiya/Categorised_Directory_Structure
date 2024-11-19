@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 import pandas as pd
 import streamlit as st
@@ -13,6 +14,11 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip
 
+# Set the page config (this will update the browser tab title)
+st.set_page_config(
+    page_title="File Categorization",  # Title displayed in the browser tab
+    page_icon="logo.png",  # You can also set a custom icon (can be an emoji or a path to an image)
+)
 
 # Helper function to get files (excluding folders)
 def get_files(path):
@@ -46,9 +52,14 @@ def resolve_path(path):
 
     # Check if the path starts with Y: drive (mapped network drive)
     if path.startswith("Y:"):
-        if not os.path.exists(path):
-            raise ValueError(f"Invalid Y: drive path or not accessible: {path}")
-        return path
+        # Check if running on the server or locally and handle accordingly
+        if sys.platform.startswith('win'):  # Check if it's a Windows system
+            if not os.path.exists(path):
+                raise ValueError(f"Invalid Y: drive path or not accessible: {path}")
+            return path
+        else:
+            # If not on a Windows system or drive is not mapped for server service
+            raise ValueError(f"Y: drive is not accessible on this server or environment: {path}")
 
     # Handle UNC paths if necessary (i.e., server accessible)
     if path.startswith("\\\\"):  # UNC path starts with double backslashes
