@@ -14,6 +14,11 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import pyperclip3 as pyperclip
+import tkinter as tk
+
+# Create a root window (no need to display it)
+root = tk.Tk()
+root.withdraw()  # Hide the root window
 
 # Load the .env file
 load_dotenv()
@@ -259,7 +264,10 @@ if directory_path:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
                                 # pyperclip.copy(full_path)
-                                pyperclip.copy("Text to clipboard")
+                                # Copy text to clipboard
+                                root.clipboard_clear()
+                                root.clipboard_append(relative_full_path)
+                                root.update()  # Necessary to update clipboard state
                                 st.success(f"Path copied to clipboard: {relative_full_path}")
                             except Exception:
                                 st.warning(f"Could not copy to clipboard. Please copy manually: {relative_full_path}")
