@@ -269,63 +269,7 @@ if directory_path:
                     name, modified_time, full_path, relative_full_path = item
                     cols = st.columns([3, 1])
                     with cols[0]:
-                        button_html = f"""
-                        <style>
-                        .stButton > button {{
-                            background-color: #f63366; /* Default Streamlit Button background color */
-                            color: white; /* Button text color */
-                            border: none;
-                            padding: 12px 36px;
-                            text-align: center;
-                            text-decoration: none;
-                            font-size: 16px;
-                            cursor: pointer;
-                            border-radius: 5px;
-                            transition: background-color 0.3s ease;
-                        }}
-                        .stButton > button:hover {{
-                            background-color: #d50057; /* Hover color */
-                        }}
-
-                        .tooltip {{
-                            position: relative;
-                            display: inline-block;
-                            cursor: pointer;
-                        }}
-
-                        .tooltip .tooltiptext {{
-                            visibility: hidden;
-                            width: 220px;
-                            background-color: #555;
-                            color: #fff;
-                            text-align: center;
-                            border-radius: 5px;
-                            padding: 5px 0;
-                            position: absolute;
-                            z-index: 1;
-                            bottom: 125%; /* Position the tooltip above the button */
-                            left: 50%;
-                            margin-left: -110px; /* Adjust the tooltip horizontally */
-                            opacity: 0;
-                            transition: opacity 0.3s;
-                        }}
-
-                        .tooltip:hover .tooltiptext {{
-                            visibility: visible;
-                            opacity: 1;
-                        }}
-                        </style>
-
-                        <div class="tooltip">
-                            <button class="stButton">
-                                {index+1} {name}  <!-- Display file name here -->
-                            </button>
-                            <span class="tooltiptext">Click to see the full path of the file</span>  <!-- Full path shown in tooltip -->
-                        </div>
-                        """
-
                         # Display the button with the file name and tooltip
-                        st.markdown(button_html, unsafe_allow_html=True)
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
                                 # Copy file path to clipboard
