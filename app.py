@@ -254,7 +254,7 @@ if directory_path:
                 categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY", "OTHER"]
                 category_selection = {}
                 
-                # Generate files if selected
+                                # Generate files if selected
                 if st.button("Generate Selected Files"):
                     categorized_data = {cat: [] for cat in categories}
                     for name, (modified_time, category) in st.session_state.category_selection.items():
@@ -273,19 +273,34 @@ if directory_path:
                         output_pdf_buffer = generate_pdf(categorized_data)
                         st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                col1, col2, col3 = st.columns(3)
+                # Dynamically show buttons in columns based on selected options
+                selected_files = [file for file, selected in {
+                    'excel': st.session_state.generate_excel_option,
+                    'word': st.session_state.generate_word_option,
+                    'pdf': st.session_state.generate_pdf_option
+                }.items() if selected]
 
-                # Download generated files
-                for file_type, file_buffer in st.session_state.generated_files.items():
-                    with col1:
-                        if file_type == 'excel':
-                            st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel', key='top_excel_button')
-                    with col2: 
-                        if file_type == 'word':
-                            st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='top_word_button')
-                    with col3:
-                        if file_type == 'pdf':
-                            st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf', key='top_pdf_button')
+                # Display download buttons based on the number of selected checkboxes
+                num_selected = len(selected_files)
+
+                if num_selected == 1:
+                    col1, col2, col3 = st.columns(3)  # Re-initialize columns
+                elif num_selected == 2:
+                    col1, col2 = st.columns(2)  # Only 2 columns
+                else:
+                    col1, col2, col3 = st.columns(3)  # All 3 columns
+
+                with col1:
+                    if 'excel' in selected_files and 'excel' in st.session_state.generated_files:
+                        st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel', key='excel_download_button_1')
+
+                with col2:
+                    if 'word' in selected_files and 'word' in st.session_state.generated_files:
+                        st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='word_download_button_1')
+
+                with col3:
+                    if 'pdf' in selected_files and 'pdf' in st.session_state.generated_files:
+                        st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf', key='pdf_download_button_1')
 
                 st.write("### Assign Categories")
                 for index, item in enumerate(items):
@@ -311,7 +326,7 @@ if directory_path:
                     st.session_state.generated_files.clear()
 
                 # Generate files if selected
-                if st.button("Generate the Files"):
+                if st.button("Generate Selected Files"):
                     categorized_data = {cat: [] for cat in categories}
                     for name, (modified_time, category) in st.session_state.category_selection.items():
                         categorized_data[category].append((name, modified_time))
@@ -329,14 +344,35 @@ if directory_path:
                         output_pdf_buffer = generate_pdf(categorized_data)
                         st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                # Download generated files
-                for file_type, file_buffer in st.session_state.generated_files.items():
-                    if file_type == 'excel':
-                        st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel', key='bottom_excel_button')
-                    elif file_type == 'word':
-                        st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='bottom_word_button')
-                    elif file_type == 'pdf':
-                        st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf', key='bottom_pdf_button')
+                # Dynamically show buttons in columns based on selected options
+                selected_files = [file for file, selected in {
+                    'excel': st.session_state.generate_excel_option,
+                    'word': st.session_state.generate_word_option,
+                    'pdf': st.session_state.generate_pdf_option
+                }.items() if selected]
+
+                # Display download buttons based on the number of selected checkboxes
+                num_selected = len(selected_files)
+
+                if num_selected == 1:
+                    col1, col2, col3 = st.columns(3)  # Re-initialize columns
+                elif num_selected == 2:
+                    col1, col2 = st.columns(2)  # Only 2 columns
+                else:
+                    col1, col2, col3 = st.columns(3)  # All 3 columns
+
+                with col1:
+                    if 'excel' in selected_files and 'excel' in st.session_state.generated_files:
+                        st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel', key='excel_download_button_2')
+
+                with col2:
+                    if 'word' in selected_files and 'word' in st.session_state.generated_files:
+                        st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='word_download_button_2')
+
+                with col3:
+                    if 'pdf' in selected_files and 'pdf' in st.session_state.generated_files:
+                        st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf', key='pdf_download_button_2')
+
 
     except ValueError as e:
         st.error(str(e))
