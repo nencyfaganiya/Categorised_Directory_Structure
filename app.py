@@ -259,7 +259,7 @@ if directory_path:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
                                 # pyperclip.copy(full_path)
-                                pyperclip.copy(relative_full_path)
+                                pyperclip.copy("Text to clipboard")
                                 st.success(f"Path copied to clipboard: {relative_full_path}")
                             except Exception:
                                 st.warning(f"Could not copy to clipboard. Please copy manually: {relative_full_path}")
