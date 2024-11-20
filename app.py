@@ -261,16 +261,30 @@ if directory_path:
                     name, modified_time, full_path, relative_full_path = item
                     cols = st.columns([3, 1])
                     with cols[0]:
-                        if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
-                            try:
-                                # pyperclip.copy(full_path)
-                                # Copy text to clipboard
-                                root.clipboard_clear()
-                                root.clipboard_append(relative_full_path)
-                                root.update()  # Necessary to update clipboard state
-                                st.success(f"Path copied to clipboard: {relative_full_path}")
-                            except Exception:
-                                st.warning(f"Could not copy to clipboard. Please copy manually: {relative_full_path}")
+                        # JavaScript for client-side clipboard copying
+                        clipboard_js = """
+                        <script>
+                            function copyToClipboard(text) {
+                                navigator.clipboard.writeText(text).then(function() {
+                                    console.log("Copied to clipboard: ", text);
+                                    alert("Copied to clipboard!");
+                                }).catch(function(error) {
+                                    console.error("Error copying to clipboard: ", error);
+                                    alert("Failed to copy text to clipboard.");
+                                });
+                            }
+                        </script>
+                        """
+                        # Inject JavaScript into Streamlit app
+                        st.markdown(clipboard_js, unsafe_allow_html=True)
+
+                        # Button for each file with dynamic JavaScript copy functionality
+                        st.markdown(
+                            f"""
+                            <button onclick="copyToClipboard('{relative_full_path}')">Copy {index + 1} {name}</button>
+                            """,
+                            unsafe_allow_html=True,
+                        )
                     with cols[1]:
                         # Track category selections to detect changes
                         category = st.selectbox("Select category", options=categories, key=f"selectbox_{index}", label_visibility="collapsed")
