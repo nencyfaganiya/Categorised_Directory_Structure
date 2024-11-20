@@ -230,7 +230,7 @@ st.title("File Categorization Tool")
 # Main page: Input for directory path and file generation button
 directory_path = st.text_input("Enter the directory path:", "")
 
-# Sidebar content
+# Sidebar content (all file generation and download buttons)
 with st.sidebar:
     st.header("File Generation Options")
 
@@ -242,8 +242,8 @@ with st.sidebar:
     # Visible button for generating the selected files
     generate_button = st.button("Generate Selected Files", key="generate_files_sidebar")
 
-    # Download buttons (Initially hidden, will appear if files are generated)
-    download_placeholder = st.empty()  # Placeholder for download buttons
+    # Placeholder for download buttons (these will appear after files are generated)
+    download_placeholder = st.empty()
 
 # Get files in directory if path is provided
 if directory_path:
@@ -301,23 +301,20 @@ if directory_path:
                         output_pdf_buffer = generate_pdf(categorized_data)
                         st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                # Display download buttons in the sidebar when files are generated
+                # Display download buttons only in the sidebar if files are generated
                 if st.session_state.generated_files:
-                    download_placeholder.empty()  # Clear the placeholder if files are generated
+                    download_placeholder.empty()  # Clear placeholder if files are generated
                     st.sidebar.write("### Download Generated Files")
 
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        if 'excel' in st.session_state.generated_files:
-                            st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel')
+                    # Display download buttons directly in the sidebar without columns
+                    if 'excel' in st.session_state.generated_files:
+                        st.sidebar.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel')
 
-                    with col2:
-                        if 'word' in st.session_state.generated_files:
-                            st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                    if 'word' in st.session_state.generated_files:
+                        st.sidebar.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
-                    with col3:
-                        if 'pdf' in st.session_state.generated_files:
-                            st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf')
+                    if 'pdf' in st.session_state.generated_files:
+                        st.sidebar.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf')
 
     except ValueError as e:
         st.error(str(e))
