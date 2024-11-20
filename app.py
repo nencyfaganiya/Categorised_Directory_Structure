@@ -311,7 +311,7 @@ if directory_path:
                     st.session_state.generated_files.clear()
 
                 # Generate files if selected
-                if st.button("Generate Selected Files"):
+                if st.button("Generate the Files"):
                     categorized_data = {cat: [] for cat in categories}
                     for name, (modified_time, category) in st.session_state.category_selection.items():
                         categorized_data[category].append((name, modified_time))
