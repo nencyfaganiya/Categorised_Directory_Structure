@@ -279,13 +279,13 @@ if directory_path:
                 for file_type, file_buffer in st.session_state.generated_files.items():
                     with col1:
                         if file_type == 'excel':
-                            st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel')
+                            st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel', key='top_excel_button')
                     with col2: 
                         if file_type == 'word':
-                            st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                            st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='top_word_button')
                     with col3:
                         if file_type == 'pdf':
-                            st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf')
+                            st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf', key='top_pdf_button')
 
                 st.write("### Assign Categories")
                 for index, item in enumerate(items):
@@ -332,11 +332,11 @@ if directory_path:
                 # Download generated files
                 for file_type, file_buffer in st.session_state.generated_files.items():
                     if file_type == 'excel':
-                        st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel')
+                        st.download_button("Download Excel", data=file_buffer, file_name='output.xlsx', mime='application/vnd.ms-excel', key='bottom_excel_button')
                     elif file_type == 'word':
-                        st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                        st.download_button("Download Word", data=file_buffer, file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='bottom_word_button')
                     elif file_type == 'pdf':
-                        st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf')
+                        st.download_button("Download PDF", data=file_buffer, file_name='output.pdf', mime='application/pdf', key='bottom_pdf_button')
 
     except ValueError as e:
         st.error(str(e))
