@@ -8,12 +8,12 @@ from pathlib import Path
 from openpyxl.styles import Font, Alignment  # <-- Add Font and Alignment here
 from dotenv import load_dotenv
 from docx import Document
-from docx.shared import Pt
+from docx.shared import Pt, Inches
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
-import pyperclip
+import pyperclip3 as pyperclip
 
 # Load the .env file
 load_dotenv()
@@ -98,30 +98,49 @@ def resolve_path(path):
 # Word generation in memory
 def generate_word(categories):
     doc = Document()
+
+    # Add a table with 2 columns
     table = doc.add_table(rows=1, cols=2)
     table.style = 'Table Grid'
+
+    # Set column widths
+    for cell in table.columns[0].cells:
+        cell.width = Inches(3)  # Adjust the width of the first column
+    for cell in table.columns[1].cells:
+        cell.width = Inches(2)  # Adjust the width of the second column
+
+    # Add headers
     hdr_cells = table.rows[0].cells
     hdr_cells[0].text = 'Category / File Name'
     hdr_cells[1].text = 'Last Modified'
+
+    # Set font style for headers
     for cell in hdr_cells:
         for paragraph in cell.paragraphs:
             for run in paragraph.runs:
                 run.font.bold = True
                 run.font.size = Pt(12)
 
+    # Add data rows
     for category, items in categories.items():
         if items:
+            # Add a row for the category name
             category_row = table.add_row().cells
             category_row[0].text = category
             category_row[1].text = ""
             category_row[0].paragraphs[0].runs[0].font.bold = True
+
+            # Add rows for each file
             for name, modified_time in items:
                 file_row = table.add_row().cells
                 file_row[0].text = name
                 file_row[1].text = modified_time
+
+                # Optionally, set vertical alignment
                 for cell in file_row:
                     cell.vertical_alignment = True
 
+    # Save the document to an in-memory buffer
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
