@@ -212,11 +212,6 @@ def generate_excel(categories):
     buffer.seek(0)
     return buffer
 
-
-import streamlit as st
-from pathlib import Path
-import pyperclip  # For copying paths to clipboard
-
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
     st.session_state.generate_excel_option = False
@@ -232,18 +227,23 @@ if 'category_selection' not in st.session_state:
 # Streamlit UI
 st.title("File Categorization Tool")
 
-# Sidebar to control file generation options
-with st.sidebar:
-    # Display Button to generate files on top
-    directory_path = st.text_input("Enter the directory path:", "")
+# Main page: Input for directory path and file generation button
+directory_path = st.text_input("Enter the directory path:", "")
 
-    # Display checkboxes for file generation options
+# Sidebar content
+with st.sidebar:
+    st.header("File Generation Options")
+
+    # Checkboxes for file generation options
     st.session_state.generate_excel_option = st.checkbox("Generate Excel", value=st.session_state.generate_excel_option)
     st.session_state.generate_word_option = st.checkbox("Generate Word", value=st.session_state.generate_word_option)
     st.session_state.generate_pdf_option = st.checkbox("Generate PDF", value=st.session_state.generate_pdf_option)
 
-    # Button to generate the files based on selected options
-    generate_button = st.button("Generate Selected Files")
+    # Visible button for generating the selected files
+    generate_button = st.button("Generate Selected Files", key="generate_files_sidebar")
+
+    # Download buttons (Initially hidden, will appear if files are generated)
+    download_placeholder = st.empty()  # Placeholder for download buttons
 
 # Get files in directory if path is provided
 if directory_path:
@@ -282,7 +282,7 @@ if directory_path:
                     st.session_state.category_selection = category_selection
                     st.session_state.generated_files.clear()
 
-                # Generate files only when the button is clicked
+                # Generate files only when the button is clicked in the sidebar
                 if generate_button:
                     categorized_data = {cat: [] for cat in categories}
                     for name, (modified_time, category) in st.session_state.category_selection.items():
@@ -301,21 +301,23 @@ if directory_path:
                         output_pdf_buffer = generate_pdf(categorized_data)
                         st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                # Display download buttons at the bottom
-                st.write("### Download Generated Files")
-                col1, col2, col3 = st.columns(3)
+                # Display download buttons in the sidebar when files are generated
+                if st.session_state.generated_files:
+                    download_placeholder.empty()  # Clear the placeholder if files are generated
+                    st.sidebar.write("### Download Generated Files")
 
-                with col1:
-                    if 'excel' in st.session_state.generated_files:
-                        st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel')
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        if 'excel' in st.session_state.generated_files:
+                            st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel')
 
-                with col2:
-                    if 'word' in st.session_state.generated_files:
-                        st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                    with col2:
+                        if 'word' in st.session_state.generated_files:
+                            st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
-                with col3:
-                    if 'pdf' in st.session_state.generated_files:
-                        st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf')
+                    with col3:
+                        if 'pdf' in st.session_state.generated_files:
+                            st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf')
 
     except ValueError as e:
         st.error(str(e))
