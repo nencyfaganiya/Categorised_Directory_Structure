@@ -213,11 +213,9 @@ def generate_excel(categories):
     return buffer
 
 
-# Streamlit UI
-st.title("File Categorization Tool")
-
-# Display Button to genrate files on top
-directory_path = st.text_input("Enter the directory path:", "")
+import streamlit as st
+from pathlib import Path
+import pyperclip  # For copying paths to clipboard
 
 # Session states for checkboxes and generated files
 if 'generate_excel_option' not in st.session_state:
@@ -231,77 +229,36 @@ if 'generated_files' not in st.session_state:
 if 'category_selection' not in st.session_state:
     st.session_state.category_selection = {}
 
-# Display checkboxes horizontally using columns
-col1, col2, col3 = st.columns(3)
+# Streamlit UI
+st.title("File Categorization Tool")
 
-with col1:
+# Sidebar to control file generation options
+with st.sidebar:
+    # Display Button to generate files on top
+    directory_path = st.text_input("Enter the directory path:", "")
+
+    # Display checkboxes for file generation options
     st.session_state.generate_excel_option = st.checkbox("Generate Excel", value=st.session_state.generate_excel_option)
-with col2:
     st.session_state.generate_word_option = st.checkbox("Generate Word", value=st.session_state.generate_word_option)
-with col3:
     st.session_state.generate_pdf_option = st.checkbox("Generate PDF", value=st.session_state.generate_pdf_option)
 
-# Get files in directory
+    # Button to generate the files based on selected options
+    generate_button = st.button("Generate Selected Files")
+
+# Get files in directory if path is provided
 if directory_path:
     try:
         resolved_path = resolve_path(directory_path)
 
         if resolved_path and Path(resolved_path).exists():
-        # Use both the resolved and client-relative paths
+            # Use both the resolved and client-relative paths
             items = get_files(resolved_path, directory_path)
-            
+
             if items:
                 categories = ["CONTRACTUAL", "ARCHITECTURAL", "STRUCTURAL", "SERVICES", "SAFETY", "OTHER"]
                 category_selection = {}
-                
-                                # Generate files if selected
-                if st.button("Generate Selected Files"):
-                    categorized_data = {cat: [] for cat in categories}
-                    for name, (modified_time, category) in st.session_state.category_selection.items():
-                        categorized_data[category].append((name, modified_time))
 
-                    # Generate files only if the file type is selected
-                    if st.session_state.generate_excel_option:
-                        output_excel_buffer = generate_excel(categorized_data)
-                        st.session_state.generated_files['excel'] = output_excel_buffer
-
-                    if st.session_state.generate_word_option:
-                        output_word_buffer = generate_word(categorized_data)
-                        st.session_state.generated_files['word'] = output_word_buffer
-
-                    if st.session_state.generate_pdf_option:
-                        output_pdf_buffer = generate_pdf(categorized_data)
-                        st.session_state.generated_files['pdf'] = output_pdf_buffer
-
-                # Dynamically show buttons in columns based on selected options
-                selected_files = [file for file, selected in {
-                    'excel': st.session_state.generate_excel_option,
-                    'word': st.session_state.generate_word_option,
-                    'pdf': st.session_state.generate_pdf_option
-                }.items() if selected]
-
-                # Display download buttons based on the number of selected checkboxes
-                num_selected = len(selected_files)
-
-                if num_selected == 1:
-                    col1, col2, col3 = st.columns(3)  # Re-initialize columns
-                elif num_selected == 2:
-                    col1, col2 = st.columns(2)  # Only 2 columns
-                else:
-                    col1, col2, col3 = st.columns(3)  # All 3 columns
-
-                with col1:
-                    if 'excel' in selected_files and 'excel' in st.session_state.generated_files:
-                        st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel', key='excel_download_button_1')
-
-                with col2:
-                    if 'word' in selected_files and 'word' in st.session_state.generated_files:
-                        st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='word_download_button_1')
-
-                with col3:
-                    if 'pdf' in selected_files and 'pdf' in st.session_state.generated_files:
-                        st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf', key='pdf_download_button_1')
-
+                # Show files and allow category selection
                 st.write("### Assign Categories")
                 for index, item in enumerate(items):
                     name, modified_time, full_path, relative_full_path = item
@@ -309,7 +266,7 @@ if directory_path:
                     with cols[0]:
                         if st.button(f"{index+1} {name}", key=f"copy_button_{index}"):
                             try:
-                                # pyperclip.copy(full_path)
+                                # Copy file path to clipboard
                                 pyperclip.copy(relative_full_path)
                                 st.success(f"Path copied to clipboard: {relative_full_path}")
                             except Exception:
@@ -325,8 +282,8 @@ if directory_path:
                     st.session_state.category_selection = category_selection
                     st.session_state.generated_files.clear()
 
-                # Generate files if selected
-                if st.button("Generate Selected Files"):
+                # Generate files only when the button is clicked
+                if generate_button:
                     categorized_data = {cat: [] for cat in categories}
                     for name, (modified_time, category) in st.session_state.category_selection.items():
                         categorized_data[category].append((name, modified_time))
@@ -344,35 +301,21 @@ if directory_path:
                         output_pdf_buffer = generate_pdf(categorized_data)
                         st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                # Dynamically show buttons in columns based on selected options
-                selected_files = [file for file, selected in {
-                    'excel': st.session_state.generate_excel_option,
-                    'word': st.session_state.generate_word_option,
-                    'pdf': st.session_state.generate_pdf_option
-                }.items() if selected]
-
-                # Display download buttons based on the number of selected checkboxes
-                num_selected = len(selected_files)
-
-                if num_selected == 1:
-                    col1, col2, col3 = st.columns(3)  # Re-initialize columns
-                elif num_selected == 2:
-                    col1, col2 = st.columns(2)  # Only 2 columns
-                else:
-                    col1, col2, col3 = st.columns(3)  # All 3 columns
+                # Display download buttons at the bottom
+                st.write("### Download Generated Files")
+                col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    if 'excel' in selected_files and 'excel' in st.session_state.generated_files:
-                        st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel', key='excel_download_button_2')
+                    if 'excel' in st.session_state.generated_files:
+                        st.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel')
 
                 with col2:
-                    if 'word' in selected_files and 'word' in st.session_state.generated_files:
-                        st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', key='word_download_button_2')
+                    if 'word' in st.session_state.generated_files:
+                        st.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
                 with col3:
-                    if 'pdf' in selected_files and 'pdf' in st.session_state.generated_files:
-                        st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf', key='pdf_download_button_2')
-
+                    if 'pdf' in st.session_state.generated_files:
+                        st.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf')
 
     except ValueError as e:
         st.error(str(e))
