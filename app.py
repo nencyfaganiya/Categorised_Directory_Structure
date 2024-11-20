@@ -235,9 +235,14 @@ with st.sidebar:
     st.header("File Generation Options")
 
     # Checkboxes for file generation options
-    st.session_state.generate_excel_option = st.checkbox("Generate Excel", value=st.session_state.generate_excel_option)
-    st.session_state.generate_word_option = st.checkbox("Generate Word", value=st.session_state.generate_word_option)
-    st.session_state.generate_pdf_option = st.checkbox("Generate PDF", value=st.session_state.generate_pdf_option)
+    generate_excel_option = st.checkbox("Generate Excel", value=st.session_state.generate_excel_option)
+    generate_word_option = st.checkbox("Generate Word", value=st.session_state.generate_word_option)
+    generate_pdf_option = st.checkbox("Generate PDF", value=st.session_state.generate_pdf_option)
+
+    # Store checkbox state in session state
+    st.session_state.generate_excel_option = generate_excel_option
+    st.session_state.generate_word_option = generate_word_option
+    st.session_state.generate_pdf_option = generate_pdf_option
 
     # Visible button for generating the selected files
     generate_button = st.button("Generate Selected Files", key="generate_files_sidebar")
@@ -301,20 +306,21 @@ if directory_path:
                         output_pdf_buffer = generate_pdf(categorized_data)
                         st.session_state.generated_files['pdf'] = output_pdf_buffer
 
-                # Display download buttons only in the sidebar if files are generated
-                if st.session_state.generated_files:
+                # Display download buttons only in the sidebar if files are generated and the checkboxes are selected
+                if generate_button:
                     download_placeholder.empty()  # Clear placeholder if files are generated
                     st.sidebar.write("### Download Generated Files")
 
                     # Display download buttons directly in the sidebar without columns
-                    if 'excel' in st.session_state.generated_files:
+                    if 'excel' in st.session_state.generated_files and st.session_state.generate_excel_option:
                         st.sidebar.download_button("Download Excel", data=st.session_state.generated_files['excel'], file_name='output.xlsx', mime='application/vnd.ms-excel')
 
-                    if 'word' in st.session_state.generated_files:
+                    if 'word' in st.session_state.generated_files and st.session_state.generate_word_option:
                         st.sidebar.download_button("Download Word", data=st.session_state.generated_files['word'], file_name='output.docx', mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
-                    if 'pdf' in st.session_state.generated_files:
+                    if 'pdf' in st.session_state.generated_files and st.session_state.generate_pdf_option:
                         st.sidebar.download_button("Download PDF", data=st.session_state.generated_files['pdf'], file_name='output.pdf', mime='application/pdf')
 
     except ValueError as e:
         st.error(str(e))
+        
